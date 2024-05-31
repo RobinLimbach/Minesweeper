@@ -4,7 +4,6 @@ import java.awt.event.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MinesweeperFrame extends JFrame implements ActionListener, KeyListener, MouseListener {
 
@@ -673,7 +672,7 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         public void run() {
             if(running){
                 elapsedTime = (System.currentTimeMillis()/100 - startTime);
-                seconds = (double)(elapsedTime / 10.0) % 60;
+                seconds = (elapsedTime / 10.0) % 60;
                 minutes = (int)(elapsedTime / 600) % 60;
                 hours = (int)(elapsedTime / 36000);
                 secondsString = String.format("%04.1f", seconds);
