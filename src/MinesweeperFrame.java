@@ -205,31 +205,34 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
 
     public void firstClick(int i, int j){
-        int count = 1;
-        while(minefield.numCloseMines(i, j) != 0){
+        if(!buttons[i][j].getFlagged()){
+            int count = 1;
+            while(minefield.numCloseMines(i, j) != 0){
+                System.out.println(count);
+                System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                minefield = new MineField(width, height, numMines);
+                count++;
+
+
+
+            }
             System.out.println(count);
-            System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            minefield = new MineField(width, height, numMines);
-            count++;
-
-
-
-        }
-        System.out.println(count);
-        for(int i1 = 0; i1 < height; i1++){
-            for(int j1 = 0; j1 < width; j1++){
-                if(buttons[i1][j1].getFlagged()){
-                    toggleFlag(i1, j1);
+            for(int i1 = 0; i1 < height; i1++){
+                for(int j1 = 0; j1 < width; j1++){
+                    if(buttons[i1][j1].getFlagged()){
+                        toggleFlag(i1, j1);
+                    }
                 }
+            }
+
+
+            isFirstClick = false;
+            buttons[i][j].doClick();
+            if(info.getScore() != 0){
+                watch.resume();
             }
         }
 
-
-        isFirstClick = false;
-        buttons[i][j].doClick();
-        if(info.getScore() != 0){
-            watch.resume();
-        }
 
 
     }
