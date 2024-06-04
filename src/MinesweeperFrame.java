@@ -7,26 +7,30 @@ import java.util.concurrent.TimeUnit;
 
 public class MinesweeperFrame extends JFrame implements ActionListener, KeyListener, MouseListener {
 
+    //variables which can be set by the player in the menu
+    int width; //number of squares across in the game
+    int height; //number of squares up/down in the game
+    int numMines; //number of mines in the game
+    char flagToggleKey; //key which the player can use to mark a square with a flag, instead of right click
+    char buttonActionKey; //key which the player can use to reveal a square
 
-    int width;
-    int height;
-    int numMines;
+    //panels
+    InfoDisplay info; //panel that contains the score, number of flags remaining, watch, and menu button
+    GameBoard gameBoard; //panel that contains the game (grid of buttons, width by height)
+    Menu menu; //panel that contains textFields to set flagToggleKey, buttonActionKey, width, height, numMines, & start new game
 
-    InfoDisplay info;
-    GameBoard gameBoard;
+    Stopwatch watch; //label that contains a timer for the current game
 
     boolean finished = false;
-    BetterButton[][] buttons;
+    BetterButton[][] buttons; //each button is one square in the gameBoard grid
     MineField minefield;
 
     boolean isFirstClick = true;
-    char flagToggleKey;
-    char buttonActionKey;
+
     int buttonHeight;
     int buttonWidth;
     boolean inMenu;
-    Menu menu;
-    Stopwatch2 watch;
+
 
 
 
@@ -48,159 +52,19 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         this.setFocusable(true);
     }
 
+    @Override
     public void actionPerformed(ActionEvent e){
         if(e.getSource() instanceof BetterButton){
             for(int i = 0; i < height; i++) {
                 for(int j = 0; j < width; j++){
                     if(e.getSource() == buttons[i][j]){
-                        uncoverButton(i, j);
+                        gameBoard.uncoverButton(i, j);
                     }
                 }
             }
         }
     }
 
-    public void uncoverButton(int i, int j){
-        if(isFirstClick){
-            firstClick(i, j);
-
-        }
-
-        else if(!finished && buttons[i][j].isEnabled1()){
-            info.setScore(info.getScore()-1);
-            colorButton(i, j);
-            buttons[i][j].disable1();
-            uncoverSurroundingButtons(i, j);
-
-        }
-        if(minefield.numCloseMines(i, j) != 0){
-            gameBoard.revalidate();
-            gameBoard.repaint();
-        }
-
-    }
-
-    public void colorButton(int i, int j){
-        int num = minefield.numCloseMines(i, j);
-        if(num == -1){
-            revealMines(i, j);
-            info.setScore(-1);
-        }
-        if(num == 0){
-            buttons[i][j].setBackground(new Color(0, 150, 200));
-            buttons[i][j].setText("0");
-        }
-        if(num == 1){
-            buttons[i][j].setBackground(new Color(0, 200, 100));
-            buttons[i][j].setText("1");
-        }
-        if(num == 2){
-            buttons[i][j].setBackground(new Color(200, 200, 0));
-            buttons[i][j].setText("2");
-        }
-        if(num == 3){
-            buttons[i][j].setBackground(new Color(200, 100, 20));
-            buttons[i][j].setText("3");
-        }
-        if(num == 4){
-            buttons[i][j].setBackground(new Color(200, 50, 0));
-            buttons[i][j].setText("4");
-        }
-        if(num == 5){
-            buttons[i][j].setBackground(new Color(150, 0, 0));
-            buttons[i][j].setText("5");
-        }
-        if(num == 6){
-
-            buttons[i][j].setBackground(new Color(100, 0, 10));
-
-            buttons[i][j].setText("6");
-        }
-        if(num ==7){
-
-            buttons[i][j].setBackground(new Color(60, 5, 20));
-
-            buttons[i][j].setText("7");
-        }
-        if(num == 8){
-
-            buttons[i][j].setBackground(new Color(30, 5, 10));
-            buttons[i][j].setText("8");
-        }
-        buttons[i][j].setFont(new Font("Comic Sans", Font.BOLD, 20));
-        buttons[i][j].setMargin(new Insets(0, 0, 0, 0));
-        buttons[i][j].setForeground(Color.BLACK);
-
-
-
-    }
-
-    public void revealMines(int k, int l){
-        finish();
-        for(int i = 0; i < height; i++){
-            for(int j = 0; j < width; j++){
-                if(!buttons[i][j].getFlagged()) {
-                    if (i == k && j == l) {
-                        ImageIcon mine = new ImageIcon("Explosion-8.png");
-                        Image image = mine.getImage();
-                        image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
-                        mine = new ImageIcon(image);
-                        buttons[i][j].setIcon(mine);
-                        buttons[i][j].setBackground(Color.red);
-                    }
-                    else if (minefield.numCloseMines(i, j) == -1) {
-                        ImageIcon mine = new ImageIcon("Explosion-8.png");
-                        Image image = mine.getImage();
-                        image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
-                        mine = new ImageIcon(image);
-                        buttons[i][j].setIcon(mine);
-                        //buttons[i][j].setBackground(Color.black);
-                    }
-                }
-                if(buttons[i][j].getFlagged() && minefield.numCloseMines(i, j) != -1){
-                    buttons[i][j].setForeground(Color.red);
-                    buttons[i][j].setHorizontalTextPosition(JButton.CENTER);
-                    ImageIcon wrongflag = new ImageIcon("american_flag_x.png");
-                    Image image = wrongflag.getImage();
-                    image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
-                    wrongflag = new ImageIcon(image);
-                    buttons[i][j].setIcon(wrongflag);
-                }
-            }
-        }
-    }
-
-
-    public void uncoverSurroundingButtons(int i , int j){
-        if(minefield.numCloseMines(i, j) == 0){
-
-
-            if(i>0 && j>0 && buttons[i-1][j-1].isEnabled1()){
-                uncoverButton(i-1, j-1);
-            }
-            if(i>0 && buttons[i-1][j].isEnabled1()){
-                uncoverButton(i-1, j);
-            }
-            if(i>0 && j< width-1 && buttons[i-1][j+1].isEnabled1()){
-                uncoverButton(i-1, j+1);
-            }
-            if(j>0 && buttons[i][j-1].isEnabled1()){
-                uncoverButton(i, j-1);
-            }
-            if(j< width-1 && buttons[i][j+1].isEnabled1()){
-                uncoverButton(i, j+1);
-            }
-            if(i< height - 1 && j>0 && buttons[i+1][j-1].isEnabled1()){
-                uncoverButton(i+1, j-1);
-            }
-            if(i< height - 1 && buttons[i+1][j].isEnabled1()){
-                uncoverButton(i+1, j);
-            }
-            if(i< height-1 && j< width-1 && buttons[i+1][j+1].isEnabled1()) {
-                uncoverButton(i+1, j+1);
-            }
-        }
-    }
 
 
     public void firstClick(int i, int j){
@@ -219,7 +83,8 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
             for(int i1 = 0; i1 < height; i1++){
                 for(int j1 = 0; j1 < width; j1++){
                     if(buttons[i1][j1].getFlagged()){
-                        toggleFlag(i1, j1);
+                        buttons[i1][j1].toggleFlag(buttonWidth, buttonHeight);
+                        info.updateFlagCount(i1, j1);
                     }
                 }
             }
@@ -236,31 +101,6 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
     }
 
-    public void toggleFlag(int i, int j){
-        if(!finished){
-            if(!buttons[i][j].getFlagged() && buttons[i][j].isEnabled1()){
-                buttons[i][j].disable1();
-                buttons[i][j].setForeground(Color.red);
-                buttons[i][j].setFont(new Font("Comic Sans", Font.BOLD, 20));
-                buttons[i][j].setMargin(new Insets(0, 0, 0, 0));
-                info.setFlagCount(info.getFlagCount()-1);
-                buttons[i][j].setFlagged(true);
-                ImageIcon icon = new ImageIcon("american_flag.png");
-                Image image = icon.getImage();
-                image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
-                icon = new ImageIcon(image);
-                buttons[i][j].setIcon(icon);
-            }
-            else if (buttons[i][j].getText().isEmpty()) {
-
-                buttons[i][j].setIcon(null);
-                buttons[i][j].enable1();
-                info.setFlagCount(info.getFlagCount()+1);
-                buttons[i][j].setFlagged(false);
-            }
-        }
-    }
-
     public void finish(){
         watch.pause();
         finished = true;
@@ -269,8 +109,6 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
     @Override
     public void keyTyped(KeyEvent e) {
-
-
 
     }
 
@@ -282,12 +120,13 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         if(key == flagToggleKey || key == buttonActionKey){
             for(int i = 0; i < height; i++){
                 for(int j = 0; j < width; j++){
-                    if(buttons[i][j].getMouseOn()){
+                    if(buttons[i][j].getMouseOn() && !finished){
                         if(key == flagToggleKey) {
-                            toggleFlag(i, j);
-                        }
+                            buttons[i][j].toggleFlag(buttonWidth, buttonHeight);
+                            info.updateFlagCount(i, j);
+}
                         if(key == buttonActionKey){
-                            uncoverButton(i, j);
+                            gameBoard.uncoverButton(i, j);
                         }
                     }
                 }
@@ -303,6 +142,10 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
     @Override
     public void keyReleased(KeyEvent e) {
 
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
 
     }
 
@@ -314,7 +157,8 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
                 for(int j = 0; j < width; j++){
                     if(e.getSource() == buttons[i][j]){
                         if(SwingUtilities.isRightMouseButton(e)){
-                            toggleFlag(i, j);
+                            buttons[i][j].toggleFlag(buttonWidth, buttonHeight);
+                            info.updateFlagCount(i, j);
                         }
                     }
                 }
@@ -323,11 +167,6 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
         }
 
-
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
 
     }
 
@@ -511,6 +350,98 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
             }
         }
 
+        public void uncoverButton(int i, int j){
+            if(isFirstClick){
+                firstClick(i, j);
+
+            }
+
+            else if(!finished && buttons[i][j].isEnabled1()){
+                info.setScore(info.getScore()-1);
+                if(minefield.numCloseMines(i, j) == -1){
+                    gameBoard.revealMines(i, j);
+                    info.setScore(-1);
+                }
+                buttons[i][j].colorButton(minefield.numCloseMines(i, j));
+                buttons[i][j].disable1();
+                uncoverSurroundingButtons(i, j);
+
+            }
+            if(minefield.numCloseMines(i, j) != 0){
+                gameBoard.revalidate();
+                gameBoard.repaint();
+            }
+
+        }
+
+        public void uncoverSurroundingButtons(int i , int j){
+            if(minefield.numCloseMines(i, j) == 0){
+
+
+                if(i>0 && j>0 && buttons[i-1][j-1].isEnabled1()){
+                    uncoverButton(i-1, j-1);
+                }
+                if(i>0 && buttons[i-1][j].isEnabled1()){
+                    uncoverButton(i-1, j);
+                }
+                if(i>0 && j< width-1 && buttons[i-1][j+1].isEnabled1()){
+                    uncoverButton(i-1, j+1);
+                }
+                if(j>0 && buttons[i][j-1].isEnabled1()){
+                    uncoverButton(i, j-1);
+                }
+                if(j< width-1 && buttons[i][j+1].isEnabled1()){
+                    uncoverButton(i, j+1);
+                }
+                if(i< height - 1 && j>0 && buttons[i+1][j-1].isEnabled1()){
+                    uncoverButton(i+1, j-1);
+                }
+                if(i< height - 1 && buttons[i+1][j].isEnabled1()){
+                    uncoverButton(i+1, j);
+                }
+                if(i< height-1 && j< width-1 && buttons[i+1][j+1].isEnabled1()) {
+                    uncoverButton(i+1, j+1);
+                }
+            }
+        }
+
+        public void revealMines(int k, int l){
+            finish();
+            for(int i = 0; i < height; i++){
+                for(int j = 0; j < width; j++){
+                    if(!buttons[i][j].getFlagged()) {
+                        if (i == k && j == l) {
+                            ImageIcon mine = new ImageIcon("Explosion-8.png");
+                            Image image = mine.getImage();
+                            image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
+                            mine = new ImageIcon(image);
+                            buttons[i][j].setIcon(mine);
+                            buttons[i][j].setBackground(Color.red);
+                        }
+                        else if (minefield.numCloseMines(i, j) == -1) {
+                            ImageIcon mine = new ImageIcon("Explosion-8.png");
+                            Image image = mine.getImage();
+                            image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
+                            mine = new ImageIcon(image);
+                            buttons[i][j].setIcon(mine);
+                            //buttons[i][j].setBackground(Color.black);
+                        }
+                    }
+                    if(buttons[i][j].getFlagged() && minefield.numCloseMines(i, j) != -1){
+                        buttons[i][j].setForeground(Color.red);
+                        buttons[i][j].setHorizontalTextPosition(JButton.CENTER);
+                        ImageIcon wrongflag = new ImageIcon("american_flag_x.png");
+                        Image image = wrongflag.getImage();
+                        image = image.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
+                        wrongflag = new ImageIcon(image);
+                        buttons[i][j].setIcon(wrongflag);
+                    }
+                }
+            }
+        }
+
+
+
         @Override
         public void actionPerformed(ActionEvent e) {
 
@@ -538,8 +469,8 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
             createLabels();
             createMenuButton();
 
-            watch = new Stopwatch2();
-            add(watch.timerLabel);
+            watch = new Stopwatch();
+            add(watch);
 
 
 
@@ -589,13 +520,15 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
             return score;
         }
 
-        public void setFlagCount(int flags){
-            this.flagCount = flags;
-            flagCountLabel.setText("Flags Left: " + flagCount);
-        }
+        public void updateFlagCount(int i, int j){
+            if(buttons[i][j].getFlagged()){
+                flagCount--;
+            }
+            if(!buttons[i][j].getFlagged() && buttons[i][j].isEnabled1()){
+                flagCount++;
+            }
 
-        public int getFlagCount(){
-            return flagCount;
+            flagCountLabel.setText("Flags Left: " + flagCount);
         }
 
         @Override
@@ -631,11 +564,10 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         }
     }
 
-    public static class Stopwatch2 implements Runnable{
+    public static class Stopwatch extends JLabel implements Runnable{
         ScheduledExecutorService scheduler;
         long startTime;
         long elapsedTime;
-        JLabel timerLabel;
         double seconds = 0;
         int minutes = 0;
         int hours = 0;
@@ -646,19 +578,20 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         boolean running = false;
 
 
-        public Stopwatch2(){
+        public Stopwatch(){
 
             secondsString = String.format("%04.1f", seconds);
             minutesString = String.format("%02d", minutes);
             hoursString = String.format("%01d", hours);
             fullString = hoursString + ":" + minutesString + ":" + secondsString;
-            timerLabel = new JLabel(fullString);
-            timerLabel.setBounds(885, 25, 300, 40);
-            timerLabel.setForeground(Color.green);
-            timerLabel.setOpaque(true);
-            timerLabel.setBackground(Color.black);
-            timerLabel.setFont(new Font("Comic Sans", Font.BOLD, 50));
-            timerLabel.setHorizontalAlignment(JTextField.CENTER);
+            setText(fullString);
+            setBounds(885, 25, 300, 40);
+
+            setForeground(Color.green);
+            setOpaque(true);
+            setBackground(Color.black);
+            setFont(new Font("Comic Sans", Font.BOLD, 50));
+            setHorizontalAlignment(JTextField.CENTER);
 
 
             scheduler = Executors.newScheduledThreadPool(1);
@@ -679,7 +612,7 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
                 minutesString = String.format("%02d", minutes);
                 hoursString = String.format("%01d", hours);
                 fullString = hoursString + ":" + minutesString + ":" + secondsString;
-                timerLabel.setText(fullString);
+                setText(fullString);
 
                 System.out.println(elapsedTime);
             }
@@ -706,6 +639,8 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
 
     }
+
+
 
 
 }
