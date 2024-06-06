@@ -215,10 +215,10 @@ public class MinesweeperFrame extends JFrame implements KeyListener, MouseListen
     //nested class extending JPanel which represents the game menu and holds all
     //the textFields and labels for the menu.
     public class Menu extends JPanel implements ActionListener{
-        JTextField[] textFields = new JTextField[5];
-        JLabel header = new JLabel();
-        JLabel[] labels = new JLabel[5];
-        JButton startButton = new JButton("Start New Game");
+        JTextField[] textFields = new JTextField[5]; //5 textFields representing flagToggleKey, buttonActionKey, width, height, numMines
+        JLabel header = new JLabel(); //label which holds the words "New Game"
+        JLabel[] labels = new JLabel[5]; //5 labels telling player what each textField is for
+        JButton startButton = new JButton("Start New Game"); //button to start new game
 
 
         public Menu(){
