@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MinesweeperFrame extends JFrame implements ActionListener, KeyListener, MouseListener {
+public class MinesweeperFrame extends JFrame implements KeyListener, MouseListener {
 
     //variables which can be set by the player in the menu
     int width; //number of squares across in the game
@@ -21,21 +21,25 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
     Stopwatch watch; //label that contains a timer for the current game
 
-    boolean finished = false;
+
     BetterButton[][] buttons; //each button is one square in the gameBoard grid
-    MineField minefield;
+    MineField minefield; //this class holds a 2d array of booleans representing where the mines are on the board.
 
+
+    boolean finished = false; //is set to true when game finishes, so player can not make more moves when the game is done.
     boolean isFirstClick = true;
-
-    int buttonHeight;
-    int buttonWidth;
     boolean inMenu;
 
+    //used for setting the size of images (flags, mines)
+    int buttonHeight;
+    int buttonWidth;
 
 
 
 
-    //constructor
+
+
+    //constructor creates frame with menu visible in it
     public MinesweeperFrame(){
 
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -43,30 +47,17 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         this.getContentPane().setBackground(Color.black);
         this.addKeyListener(this);
         this.setVisible(true);
-
-
-
         menu = new Menu();
         this.add(menu);
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setFocusable(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e){
-        if(e.getSource() instanceof BetterButton){
-            for(int i = 0; i < height; i++) {
-                for(int j = 0; j < width; j++){
-                    if(e.getSource() == buttons[i][j]){
-                        gameBoard.uncoverButton(i, j);
-                    }
-                }
-            }
-        }
-    }
-
-
-
+    /*
+        does the first click of a game on the specified button (i, j). It initializes minefield randomly over and over
+        until the button at (i, j) is not adjacent to any mines. Then it uncovers the clicked button
+        (which uncovers surrounding buttons), sets isFirstClick to false, and starts the stopwatch.
+    */
     public void firstClick(int i, int j){
         if(!buttons[i][j].getFlagged()){
             int count = 1;
@@ -91,7 +82,7 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
 
             isFirstClick = false;
-            buttons[i][j].doClick();
+            gameBoard.uncoverButton(i, j);
             if(info.getScore() != 0){
                 watch.resume();
             }
@@ -101,6 +92,7 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
 
     }
 
+    //stops the watch and sets finished to true so no modifications can be made to the board.
     public void finish(){
         watch.pause();
         finished = true;
@@ -113,6 +105,11 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
     }
 
     @Override
+    /*
+        if the key pressed is the flagToggleKey, a flag is toggled on the place where the mouse is hovering.
+        if the key pressed is the buttonActionKey, the place where the mouse is hovering is uncovered.
+        if the key pressed is esc, menuButton is clicked and the menu opens (or closes if inMenu is true)
+     */
     public void keyPressed(KeyEvent e) {
         char key = e.getKeyChar();
 
@@ -150,6 +147,9 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
     }
 
     @Override
+    /*
+        right click toggles flag, left click uncovers the square.
+     */
     public void mousePressed(MouseEvent e) {
 
         if(e.getSource() instanceof BetterButton){
@@ -159,6 +159,9 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
                         if(SwingUtilities.isRightMouseButton(e)){
                             buttons[i][j].toggleFlag(buttonWidth, buttonHeight);
                             info.updateFlagCount(i, j);
+                        }
+                        else if(SwingUtilities.isLeftMouseButton(e)){
+                            gameBoard.uncoverButton(i, j);
                         }
                     }
                 }
@@ -176,6 +179,12 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
     }
 
     @Override
+    /*
+        every BetterButton object within the buttons array has a mouseOn boolean value which is false unless
+        the mouse is currently hovering over that button. This allows keyListener to trigger a specific button
+        when a key is pressed.
+        mouseEntered and mouseExited update those boolean values whenever the mouse moves.
+     */
     public void mouseEntered(MouseEvent e) {
         if(e.getSource() instanceof JButton){
             for(int i = 0; i < height; i++){
@@ -203,6 +212,8 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         }
     }
 
+    //nested class extending JPanel which represents the game menu and holds all
+    //the textFields and labels for the menu.
     public class Menu extends JPanel implements ActionListener{
         JTextField[] textFields = new JTextField[5];
         JLabel header = new JLabel();
@@ -290,6 +301,8 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         }
     }
 
+    //nested class extending JPanel which represents the game board and holds
+    //methods regarding the board and revealing buttons.
     public class GameBoard extends JPanel implements ActionListener{
 
         public GameBoard(){
@@ -337,7 +350,6 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
                     buttons[i][j].setOpaque(true);
                     buttons[i][j].setBorderPainted(false);
                     buttons[i][j].addMouseListener(MinesweeperFrame.this);
-                    buttons[i][j].addActionListener(MinesweeperFrame.this);
                     buttons[i][j].addKeyListener(MinesweeperFrame.this);
                     if((i + j) % 2 == 0){
                         buttons[i][j].setBackground(new Color(170, 170, 170));
@@ -448,6 +460,7 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         }
     }
 
+    //nested class extending JPanel which holds the info above the game (score, flags, timer, menu button).
     public class InfoDisplay extends JPanel implements ActionListener{
         int score;
         int flagCount;
@@ -564,6 +577,7 @@ public class MinesweeperFrame extends JFrame implements ActionListener, KeyListe
         }
     }
 
+    //nested class extending JLabel which holds a timer display
     public static class Stopwatch extends JLabel implements Runnable{
         ScheduledExecutorService scheduler;
         long startTime;
